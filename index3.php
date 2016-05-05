@@ -78,7 +78,7 @@ class Db {
      /**
       * quote and excape value for use in a database query
       * 
-      * @param string $value The value to be quoted and escaped
+      *cc string $value The value to be quoted and escaped
       * @return string The quoted and escaped string
       */
      public function quote($value) {
@@ -96,6 +96,7 @@ class Node {
     var $outgoing_links;
     var $max_incomming_links;
     var $max_outgoing_links;
+    
     function __construct($db, $qr){
         //get node info from database
         $nodes = $db -> select("SELECT NodeType.linkI as linkI, NodeType.linkO as linkO, Node.ID as ID, NodeType.Name as TypeName, Node.Name as Name, NodeType.Description as Description, Node.QR as QR FROM NodeType INNER JOIN Node ON Node.Type=NodeType.ID WHERE Node.QR =" . $qr  );
@@ -109,6 +110,7 @@ class Node {
         $this -> max_outgoing_links = $node['linkO'];
         $this -> set_links($db);
     }
+    
     public function printer(){
         echo "&frasl;______________NODE_DATA______________&bsol; <br>";
         echo "Name: " . $this->name . " ";
@@ -119,11 +121,11 @@ class Node {
     }
     
     public function printer_links(){  
-        echo '<a href = "http://zxing.appspot.com/scan?ret=http%3A%2F%2Ffrontier.r4u.nl%2Findex3.php%3Fqr%3D'.$this -> qr.'%26link%3D%7BCODE%7D">ADD_LINK</a><br>' ;
+        echo "<a href = \"http://zxing.appspot.com/scan?ret=http%3A%2F%2Ffrontier.r4u.nl%2Findex3.php%3Fqr%3D".$this -> qr."%26link%3D%7BCODE%7D\">ADD_LINK</a><br>" ;
         echo "<br>----OUTGOING LINKS(".count($this -> outgoing_links)."/".$this -> max_outgoing_links. ")----<br>";
         if(!empty($this -> outgoing_links)){
             foreach($this -> outgoing_links as $link){
-                echo 'O:' . $link -> name ." ";
+                echo "O:" . $link -> name ." ";
                 echo "ID:". $link -> destination_ID . " ";
                 echo "(-" . $link -> power . "U)<br>";
             }
@@ -131,13 +133,17 @@ class Node {
         echo "<br>----INCOMING LINKS(".count($this -> incomming_links)."/".$this -> max_incomming_links. ")----<br>";
         if(!empty($this -> incomming_links)){
             foreach($this -> incomming_links as $link){
-                echo 'I:' . $link -> name ." ";
+                echo "I:" . $link -> name ." ";
                 echo "ID:". $link -> source_ID . " ";
                 echo "(+" . $link -> power . "U)<br>";
             }
         }
     }
-    // gets the target node as node object
+    
+    /**
+    * gets the target node as node object
+    * @param $target 
+    */ 
     public function check_link($target){
         // if max exceeded
         if(!$this -> check_link_exists($target)){
@@ -153,6 +159,7 @@ class Node {
             echo "AW yiss. this link is allowed mon! <br>";
         }
     }
+    
     public function check_ilink_max(){
         if ($this -> max_incomming_links > count($this -> incomming_links)){
             return 1;
@@ -161,6 +168,7 @@ class Node {
             return 0;
         }
     }
+    
     public function check_olink_max(){
         if ($this -> max_outgoing_links > count($this -> outgoing_links)){
             return 1;
@@ -169,6 +177,7 @@ class Node {
             return 0;
         }
     }
+    
     //seperation of concerns is not completely good yet, it would be better if link just requires an ID or suchlike to be created!
     private function set_links($db){
         $links = $db -> select("SELECT n.Power as power, n.SourceID, n.DestinationID, n1.QR as QR1, n2.QR as QR2, n2.name as name FROM NodeLink n JOIN Node n1 ON n1.ID = n.SourceID JOIN Node n2 ON n2.ID = n.DestinationID WHERE n1.ID =" . $this -> ID );
@@ -188,6 +197,7 @@ class Node {
         }
         $this -> incomming_links = $array2;
     }
+    
     //Gets target node object and checks if the link allready exists
     public function check_link_exists($target){
         $targetID = $target -> ID;
@@ -214,6 +224,7 @@ class Link {
     var $destination_ID;
     var $power;
     var $name;
+    
     function __construct($link){
         $this -> source_ID = $link['SourceID'];
         $this -> destination_ID = $link['DestinationID'];
@@ -234,7 +245,7 @@ if(isset($_GET['qr'])){
     $node -> printer_links();
     echo '&bsol;_____________________________________&frasl; <br>';
     if(isset($_GET['link'])){
-        $qr = $db -> quote($_GET['link']);
+        $qr = $db -> quote($_GET["link"]);
         $link_node = new Node($db,$qr);
         echo "attempting to link node: " . $node -> name . " to node:" . $link_node -> name. "<Br>";
         $node -> check_link($link_node);
